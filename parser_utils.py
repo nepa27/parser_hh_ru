@@ -1,9 +1,9 @@
-import json
 import re
 
+import bs4
 from bs4 import BeautifulSoup
 
-def parse_chats_url():
+def parse_chats_url() -> list:
     """Парсит чаты."""
     with open("chats.html", "r") as f:
         file = f.read()
@@ -16,34 +16,28 @@ def parse_chats_url():
         json_data = []
         for ind, chat in enumerate(chats):
             chat_id = {
-                'id': chat['id']
+                'id': chat['id'].replace('chat-cell-', '')
             }
-            chat_url = {
-                'url': chat['href']
-            }
-            chat_vacancy = {"vacancy": vacancy[ind].text}
-            chat_company = {"status": company[ind].text}
-            chat_status = {"company": check_chat_status(status[ind])}
+            chat_vacancy = {'vacancy': vacancy[ind].text}
+            chat_company = {'company': company[ind].text}
+            chat_status = {'status': check_chat_status(status[ind])}
 
             json_data.append((
                 chat_id,
                 chat_vacancy,
                 chat_company,
-                chat_url,
                 chat_status
             ))
 
-        json_data = json.dumps(json_data, ensure_ascii=False, indent=4)
         return json_data
     except BaseException as er:
-        print(f'Возникла ошибка: {er}')
+        print(f'Возникла ошибка в {__name__}: {er}')
         return None
 
 
-def check_chat_status(status):
+def check_chat_status(status: bs4.element.Tag):
     """Проверяет статус чата."""
-
-    status_class = status["class"][1]
+    status_class = status['class'][1]
     status_text = status.text
     if 'color_red' in status_class:
         return 'refusal'
@@ -55,3 +49,77 @@ def check_chat_status(status):
         return 'viewed'
     else:
         return None
+
+
+def parse_messages(html: str):
+    """Парсит сообщения."""
+    soup = BeautifulSoup(html, 'lxml')
+    messages = []
+    seen_ids = set()
+
+    name_company = soup.find(
+        'div', attrs={'data-qa': re.compile('participant')}
+    )
+
+    message_elements = soup.find_all(
+        'div', attrs={'data-qa': re.compile('^chatik-chat-message-')}
+    )
+
+    for message in message_elements:
+        try:
+            message_id = message.get('data-qa', '').replace('chatik-chat-message-', '')
+            if message_id.endswith('text'):
+                continue
+            if not message_id or message_id in seen_ids:
+                continue
+
+            seen_ids.add(message_id)
+            author_elem = message.find(
+                'span', attrs={'data-qa': 'chat-bubble-author-name'}
+            )
+            author = author_elem.text.strip() if author_elem else 'user'
+
+            title_elem = message.find('div', attrs={'data-qa': 'chat-bubble-title'})
+            title = title_elem.text.strip() if title_elem else None
+
+            text = message.find('span', attrs={'data-qa': 'chat-bubble-text'})
+            text = text.text.strip() if text else None
+
+            time_elem = message.find(
+                'span', attrs={'data-qa': 'chat-buble-display-time'}
+            )
+            time = time_elem.text.strip() if time_elem else None
+
+            date_elem = message.find_previous(
+                'div', class_=re.compile('___date-change')
+            )
+            date = (
+                date_elem.find('div', class_=re.compile('___chat-date')).text.strip()
+                if date_elem
+                else None
+            )
+
+            bubble = message.find('div', class_=re.compile('___chat-bubble_incoming'))
+            message_type = (
+                'incoming'
+                if bubble
+                else 'outgoing'
+            )
+
+            messages.append(
+                {   'id': message_id,
+                    'name_company': name_company.text.strip() if name_company else None,
+                    'author': author,
+                    'title': title,
+                    'text': text,
+                    'time': time,
+                    'date': date,
+                    'type': message_type,
+                }
+            )
+
+        except Exception as e:
+            print(f'Ошибка при парсинге сообщения: {e}')
+            continue
+
+    return messages
