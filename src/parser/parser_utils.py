@@ -14,7 +14,7 @@ def parse_chats_url() -> list:
         status = soup.find_all('div', class_=re.compile('___last-message-color'))
         vacancy = soup.find_all('div', class_=re.compile('___title'))
         company = soup.find_all('div', class_=re.compile('___subtitle'))
-        json_data = []
+        chats_data = []
         for ind, chat in enumerate(chats):
             chat_id = {
                 'id': chat['id'].replace('chat-cell-', '')
@@ -23,14 +23,14 @@ def parse_chats_url() -> list:
             chat_company = {'company': company[ind].text}
             chat_status = {'status': check_chat_status(status[ind])}
 
-            json_data.append((
+            chats_data.append((
                 chat_id,
                 chat_vacancy,
                 chat_company,
                 chat_status
             ))
 
-        return json_data
+        return chats_data
     except BaseException as er:
         print(f'Возникла ошибка в {__name__}: {er}')
         return None
