@@ -3,6 +3,7 @@ import re
 import bs4
 from bs4 import BeautifulSoup
 
+
 def parse_chats_url() -> list:
     """Парсит чаты."""
     with open("chats.html", "r") as f:
@@ -10,9 +11,9 @@ def parse_chats_url() -> list:
     soup = BeautifulSoup(file, 'lxml')
     try:
         chats = soup.find_all('a', id=re.compile('chat-cell-'))
-        status = soup.find_all('div',class_=re.compile('___last-message-color'))
-        vacancy = soup.find_all('div',class_=re.compile('___title'))
-        company = soup.find_all('div',class_=re.compile('___subtitle'))
+        status = soup.find_all('div', class_=re.compile('___last-message-color'))
+        vacancy = soup.find_all('div', class_=re.compile('___title'))
+        company = soup.find_all('div', class_=re.compile('___subtitle'))
         json_data = []
         for ind, chat in enumerate(chats):
             chat_id = {
@@ -107,15 +108,15 @@ def parse_messages(html: str):
             )
 
             messages.append(
-                {   'id': message_id,
-                    'name_company': name_company.text.strip() if name_company else None,
-                    'author': author,
-                    'title': title,
-                    'text': text,
-                    'time': time,
-                    'date': date,
-                    'type': message_type,
-                }
+                {'id': message_id,
+                 'name_company': name_company.text.strip() if name_company else None,
+                 'author': author,
+                 'title': title,
+                 'text': text,
+                 'time': time,
+                 'date': date,
+                 'type': message_type,
+                 }
             )
 
         except Exception as e:
