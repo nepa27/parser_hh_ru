@@ -85,7 +85,8 @@ class SeleniumUtils(AbstractSelenim):
                 )
                 continue_button.click()
 
-            # TODO: Странная обработки ошибки и отсутствие действия после её возникновения
+            # TODO: Странная обработки ошибки и
+            #  отсутствие действия после её возникновения
             except BaseException:
                 pass
 
@@ -95,7 +96,8 @@ class SeleniumUtils(AbstractSelenim):
             )
             password_field.send_keys(PASSWORD)
 
-            # TODO: Странная обработки ошибки и отсутствие действия после её возникновения
+            # TODO: Странная обработки ошибки и
+            #  отсутствие действия после её возникновения
             try:
                 login_button = self.driver.find_element(
                     By.XPATH, '//button[@data-qa="submit-button"]'
@@ -107,42 +109,55 @@ class SeleniumUtils(AbstractSelenim):
             time.sleep(self.config.time_sleep_between_requests)
 
         except BaseException as er:
-            print(f'Возникла ошибка в {__name__}: {er}')
+            self.logger.error(f'Возникла ошибка в {__name__}: {er}')
 
     def move_to_chat(self) -> None:
         """
         Переходит с главной страницу HH.ru на страницу чатов.
-        Пролистывает всю страницу с чатами до конца.
 
-        :return None
+        Пролистывает всю страницу с чатами до конца.
         """
         self.driver.get(self.config.url_chat)
         self.scrolling_chats()
+        print('scrolling_chats')
 
     def scrolling_chats(self) -> None:
-        """Скроллит траницу с чатами вниз."""
-        chats_container = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, '//div[contains(@class, "___chats")]'))
+        """
+        Скроллит траницу с чатами вниз.
+
+        Определяем на странице 'контейнер' с чатами.
+        Запоминаем чат, далее проходимся по всем чатам,
+        считая, что максимум попыток у нас self.config.max_attempts
+        """
+        chats_container = WebDriverWait(
+            self.driver,
+            self.config.chats_container_await
+        ).until(
+            EC.presence_of_element_located(
+                (By.XPATH, '//div[contains(@class, "chats--")]')
+            )
         )
         prev_chats = self.driver.find_elements(
             By.XPATH, '//a[contains(@data-qa, "chatik-open-chat-")]'
         )
         prev_count = len(prev_chats)
-        attempts = 0
-        max_attempts = 100
+        attempts = self.config.min_attempts_to_scroll
+        max_attempts = self.config.max_attempts_to_scroll
 
         while attempts < max_attempts:
             self.driver.execute_script(
-                'arguments[0].scrollTop = arguments[0].scrollHeight', chats_container
+                'arguments[0].scrollTop = arguments[0].scrollHeight',
+                chats_container
             )
-            time.sleep(2)
+            time.sleep(self.config.time_sleep_between_requests)
 
             current_chats = self.driver.find_elements(
                 By.XPATH, '//a[contains(@data-qa, "chatik-open-chat-")]'
             )
             current_count = len(current_chats)
 
-            print(f'Попытка {attempts + 1}: было {prev_count}, стало {current_count} чатов')
+            self.logger.info(f'Попытка {attempts + 1}: было {prev_count},'
+                  f' стало {current_count} чатов')
 
             if current_count == prev_count:
                 break
@@ -150,28 +165,35 @@ class SeleniumUtils(AbstractSelenim):
             prev_count = current_count
             attempts += 1
 
-        print(f'Всего загружено чатов: {prev_count}')
-        time.sleep(5)
+        self.logger.info(f'Всего загружено чатов: {prev_count}')
+        time.sleep(self.config.time_sleep_between_scroll)
 
         with open('chats.html', 'w') as file:
             file.write(self.driver.page_source)
 
     def get_message_from_chats(self, chats_data: list):
-        """Получает сообщения из чатов."""
+        """
+        Получает сообщения из чатов.
+
+        Проходит по всем чатам.
+        Скроллит внутри чата в начало диалога.
+        Записывает всю информацию в messages.txt
+        """
         all_messages = []
         try:
             for chat_data in chats_data:
                 chat_url = chat_data[0]['id']
                 self.driver.get(f'https://chatik.hh.ru/chat/{chat_url}')
-                print(f'Перешли в чат {chat_url}')
-                time.sleep(2)
+                self.logger.info(f'Перешли в чат {chat_url}')
+                time.sleep(self.config.time_sleep_between_requests)
 
-                messages = self.scroll_chat_up_and_get_message(self.driver)
+                self.scroll_chat_up_and_get_message()
+                messages = self.get_messages()
                 all_messages.append(messages)
-                time.sleep(2)
+                time.sleep(self.config.time_sleep_between_requests)
 
         except BaseException as er:
-            print(f'Возникла ошибка в {__name__}: {er}')
+            self.logger.error(f'Возникла ошибка в {__name__}: {er}')
         finally:
             with open('messages.txt', 'w') as file:
                 for message in all_messages:
@@ -180,26 +202,49 @@ class SeleniumUtils(AbstractSelenim):
             self.driver.quit()
 
 
-    def scroll_chat_up_and_get_message(self) -> str:
-        """Скроллит чат вверх и возвращает сообщения."""
-        chat_container = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, '//div[contains(@class, "___content")]'))
+    def scroll_chat_up_and_get_message(self) -> None:
+        """
+        Скроллит чат вверх.
+
+        Ожидает появления 'контейнера' с сообщениями.
+        Скроллит чат в начало.
+        """
+        chat_container = WebDriverWait(
+            self.driver,
+            self.config.chats_container_await
+        ).until(
+            EC.presence_of_element_located(
+                (By.XPATH, '//div[contains(@class, "___content")]')
+            )
         )
 
         self.driver.execute_script(
             'arguments[0].scrollTop = 0', chat_container
         )
-        time.sleep(2)
+        time.sleep(self.config.time_sleep_between_requests)
 
         current_messages = self.driver.find_elements(
             By.XPATH, '//div[contains(@data-qa, "chatik-chat-message-")]'
         )
         current_count = len(current_messages)
 
-        print(f'+ {current_count} сообщений')
+        self.logger.info(f'+ {current_count} сообщений')
 
-        html = self.driver.page_source
-        messages_data = parse_messages(html)
-        return messages_data
+        # Оставить на случай надобности сохранения чатов
         # with open('chats.txt', 'a') as file:
         #     file.write(messages)
+
+    def get_messages(self) -> str:
+        """
+        Возвращает сообщения из чата.
+
+        Получает страницу и отправляет в parse_messages().
+        Возвращает данные из сообщений в строковом виде.
+        """
+        messages_data = parse_messages(self.driver.page_source)
+        return messages_data
+
+    def quit_driver(self):
+        """Обеспечивает отключение self.driver после работы."""
+        if self.driver:
+            self.driver.quit()
