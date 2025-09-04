@@ -53,8 +53,9 @@ class SeleniumUtils(AbstractSelenim):
         options.add_argument(f'user-agent={user_agent}')
 
         self.driver = webdriver.Chrome(options=options)
+        self.logger.info('Инициализация драйвера')
 
-    def auth_hh_ru(self):
+    def auth_hh_ru(self) -> None:
         """
         Аутентификация в hh.ru.
 
@@ -107,6 +108,7 @@ class SeleniumUtils(AbstractSelenim):
                 pass
 
             time.sleep(self.config.time_sleep_between_requests)
+            self.logger.info('Аутентификация в hh.ru')
 
         except BaseException as er:
             self.logger.error(f'Возникла ошибка в {__name__}: {er}')
@@ -119,15 +121,16 @@ class SeleniumUtils(AbstractSelenim):
         """
         self.driver.get(self.config.url_chat)
         self.scrolling_chats()
-        print('scrolling_chats')
+        self.logger.info('Перешли с главной страницу HH.ru на страницу чатов')
 
     def scrolling_chats(self) -> None:
         """
-        Скроллит траницу с чатами вниз.
+        Скроллит страницу с чатами вниз.
 
         Определяем на странице 'контейнер' с чатами.
         Запоминаем чат, далее проходимся по всем чатам,
         считая, что максимум попыток у нас self.config.max_attempts
+        Сохраняем все чаты в файл chats.html
         """
         chats_container = WebDriverWait(
             self.driver,
@@ -170,8 +173,9 @@ class SeleniumUtils(AbstractSelenim):
 
         with open('chats.html', 'w') as file:
             file.write(self.driver.page_source)
+        self.logger.info('Получили все чаты и сохранили их')
 
-    def get_message_from_chats(self, chats_data: list):
+    def get_message_from_chats(self, chats_data: list) -> None:
         """
         Получает сообщения из чатов.
 
@@ -200,7 +204,7 @@ class SeleniumUtils(AbstractSelenim):
                     file.write(str(message))
                     file.write("\n")
             self.driver.quit()
-
+        self.logger.info('Получили сообщения из чатов, сохранили в messages.txt')
 
     def scroll_chat_up_and_get_message(self) -> None:
         """
@@ -244,7 +248,7 @@ class SeleniumUtils(AbstractSelenim):
         messages_data = parse_messages(self.driver.page_source)
         return messages_data
 
-    def quit_driver(self):
+    def quit_driver(self) -> None:
         """Обеспечивает отключение self.driver после работы."""
         if self.driver:
             self.driver.quit()
