@@ -10,6 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from parser_utils import parse_messages
+from src.logger_config import logging_decorator
 from src.parser.abstract import AbstractSelenim
 from src.parser.config import ParserConfig
 
@@ -37,6 +38,7 @@ class SeleniumUtils(AbstractSelenim):
         self.config = config
         self.logger = logger
 
+    @logging_decorator
     def driver_init(self) -> None:
         """
         Инициализация драйвера.
@@ -53,8 +55,8 @@ class SeleniumUtils(AbstractSelenim):
         options.add_argument(f'user-agent={user_agent}')
 
         self.driver = webdriver.Chrome(options=options)
-        self.logger.info('Инициализация драйвера')
 
+    @logging_decorator
     def auth_hh_ru(self) -> None:
         """
         Аутентификация в hh.ru.
@@ -108,11 +110,11 @@ class SeleniumUtils(AbstractSelenim):
                 pass
 
             time.sleep(self.config.time_sleep_between_requests)
-            self.logger.info('Аутентификация в hh.ru')
 
         except BaseException as er:
             self.logger.error(f'Возникла ошибка в {__name__}: {er}')
 
+    @logging_decorator
     def move_to_chat(self) -> None:
         """
         Переходит с главной страницу HH.ru на страницу чатов.
@@ -121,8 +123,8 @@ class SeleniumUtils(AbstractSelenim):
         """
         self.driver.get(self.config.url_chat)
         self.scrolling_chats()
-        self.logger.info('Перешли с главной страницу HH.ru на страницу чатов')
 
+    @logging_decorator
     def scrolling_chats(self) -> None:
         """
         Скроллит страницу с чатами вниз.
@@ -159,7 +161,7 @@ class SeleniumUtils(AbstractSelenim):
             )
             current_count = len(current_chats)
 
-            self.logger.info(f'Попытка {attempts + 1}: было {prev_count},'
+            self.logger.debug(f'Попытка {attempts + 1}: было {prev_count},'
                   f' стало {current_count} чатов')
 
             if current_count == prev_count:
@@ -168,13 +170,13 @@ class SeleniumUtils(AbstractSelenim):
             prev_count = current_count
             attempts += 1
 
-        self.logger.info(f'Всего загружено чатов: {prev_count}')
+        self.logger.debug(f'Всего загружено чатов: {prev_count}')
         time.sleep(self.config.time_sleep_between_scroll)
 
         with open('chats.html', 'w') as file:
             file.write(self.driver.page_source)
-        self.logger.info('Получили все чаты и сохранили их')
 
+    @logging_decorator
     def get_message_from_chats(self, chats_data: list) -> None:
         """
         Получает сообщения из чатов.
@@ -204,8 +206,8 @@ class SeleniumUtils(AbstractSelenim):
                     file.write(str(message))
                     file.write("\n")
             self.driver.quit()
-        self.logger.info('Получили сообщения из чатов, сохранили в messages.txt')
 
+    @logging_decorator
     def scroll_chat_up_and_get_message(self) -> None:
         """
         Скроллит чат вверх.
@@ -232,12 +234,13 @@ class SeleniumUtils(AbstractSelenim):
         )
         current_count = len(current_messages)
 
-        self.logger.info(f'+ {current_count} сообщений')
+        self.logger.debug(f'+ {current_count} сообщений')
 
         # Оставить на случай надобности сохранения чатов
         # with open('chats.txt', 'a') as file:
         #     file.write(messages)
 
+    @logging_decorator
     def get_messages(self) -> str:
         """
         Возвращает сообщения из чата.
@@ -248,6 +251,7 @@ class SeleniumUtils(AbstractSelenim):
         messages_data = parse_messages(self.driver.page_source)
         return messages_data
 
+    @logging_decorator
     def quit_driver(self) -> None:
         """Обеспечивает отключение self.driver после работы."""
         if self.driver:
