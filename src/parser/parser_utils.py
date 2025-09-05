@@ -3,7 +3,10 @@ import re
 import bs4
 from bs4 import BeautifulSoup
 
+from src.logger_config import logging_decorator
 
+
+@logging_decorator
 def parse_chats_url() -> list:
     """Парсит чаты."""
     with open("chats.html", "r") as f:
@@ -36,6 +39,7 @@ def parse_chats_url() -> list:
         return None
 
 
+@logging_decorator
 def check_chat_status(status: bs4.element.Tag):
     """Проверяет статус чата."""
     status_class = status['class'][1]
@@ -52,6 +56,7 @@ def check_chat_status(status: bs4.element.Tag):
         return None
 
 
+@logging_decorator
 def parse_messages(html: str):
     """Парсит сообщения."""
     soup = BeautifulSoup(html, 'lxml')
