@@ -19,6 +19,7 @@ def main() -> None:
     Далее проходим по каждому чату и получаем данные get_message_from_chats().
 
     """
+    selenium_worker: SeleniumUtils = None
     try:
         config = ParserConfig()
 
@@ -36,7 +37,8 @@ def main() -> None:
     except BaseException as er:
         logger.error(f'Возникла ошибка в {__name__}: {er}')
     finally:
-        selenium_worker.quit_driver()
+        if selenium_worker is not None:
+            selenium_worker.quit_driver()
 
 
 if __name__ == '__main__':
