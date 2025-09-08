@@ -29,8 +29,9 @@ logger.addHandler(file_handler)
 
 def logging_decorator(func: Callable) -> Callable:
     """Логирует результат выполнения функции."""
-    @wraps
+    @wraps(func)
     def wrapper(*args, **kwargs):
-        func(*args, **kwargs)
+        result = func(*args, **kwargs)
         logger.info(f'Отработала функция: {func.__name__}')
+        return result
     return wrapper
