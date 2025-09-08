@@ -1,10 +1,9 @@
 from typing import List, Tuple, Dict, Any
 
+from src.logger_config import logger
 from src.parser.selenium_worker import SeleniumUtils
 from src.parser.parser_utils import parse_chats_url
 from src.parser.config import ParserConfig
-
-from src.logger_config import logger
 
 
 def main() -> None:
