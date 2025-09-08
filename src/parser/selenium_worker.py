@@ -14,20 +14,19 @@ from src.parser.abstract import AbstractSelenim
 from src.parser.config import ParserConfig
 from src.parser.parser_utils import parse_messages
 
-
 load_dotenv()
 
-PASSWORD = os.getenv("PASSWORD")
-PHONE_NUMBER = os.getenv("PHONE_NUMBER")
+PASSWORD = os.getenv('PASSWORD')
+PHONE_NUMBER = os.getenv('PHONE_NUMBER')
 
 
 class SeleniumUtils(AbstractSelenim):
     """Класс реализующий автоматическую работу браузера."""
 
     def __init__(
-        self,
-        config: ParserConfig,
-        logger: Logger
+            self,
+            config: ParserConfig,
+            logger: Logger
     ) -> None:
         """
         Инициализация системы автоматизации работы.
@@ -159,7 +158,7 @@ class SeleniumUtils(AbstractSelenim):
             current_count = len(current_chats)
 
             self.logger.debug(f'Попытка {attempts + 1}: было {prev_count},'
-                  f' стало {current_count} чатов')
+                              f' стало {current_count} чатов')
 
             if current_count == prev_count:
                 break

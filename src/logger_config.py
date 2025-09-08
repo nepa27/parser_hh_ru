@@ -4,7 +4,6 @@ from logging.handlers import RotatingFileHandler
 import sys
 from typing import Callable
 
-
 log_format = (
     '%(asctime)s - [%(levelname)s] -  %(name)s - '
     '(%(filename)s).%(funcName)s(%(lineno)d) - %(message)s'
@@ -29,9 +28,11 @@ logger.addHandler(file_handler)
 
 def logging_decorator(func: Callable) -> Callable:
     """Логирует результат выполнения функции."""
+
     @wraps(func)
     def wrapper(*args, **kwargs) -> Callable:
         result = func(*args, **kwargs)
         logger.info(f'Отработала функция: {func.__name__}')
         return result
+
     return wrapper

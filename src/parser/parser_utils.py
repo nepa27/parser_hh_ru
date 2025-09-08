@@ -10,7 +10,7 @@ from src.logger_config import logging_decorator, logger
 @logging_decorator
 def parse_chats_url() -> List[Tuple[Dict[str, Any]]] | None:
     """Парсит чаты."""
-    with open("chats.html", "r") as f:
+    with open('chats.html', 'r') as f:
         file = f.read()
     soup: BeautifulSoup = BeautifulSoup(file, 'lxml')
     try:
