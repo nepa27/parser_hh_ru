@@ -89,10 +89,8 @@ class SeleniumUtils(AbstractSelenim):
                 )
                 continue_button.click()
 
-            # TODO: Странная обработки ошибки и
-            #  отсутствие действия после её возникновения
-            except BaseException:
-                pass
+            except Exception as e:
+                self.logger.warning(f'Кнопка "Продолжить" не найдена: {e}')
 
             time.sleep(self.config.time_sleep_between_requests)
             password_field = self.driver.find_element(
@@ -100,19 +98,17 @@ class SeleniumUtils(AbstractSelenim):
             )
             password_field.send_keys(PASSWORD)
 
-            # TODO: Странная обработки ошибки и
-            #  отсутствие действия после её возникновения
             try:
                 login_button = self.driver.find_element(
                     By.XPATH, '//button[@data-qa="submit-button"]'
                 )
                 login_button.click()
-            except BaseException:
-                pass
+            except Exception as e:
+                self.logger.warning(f'Кнопка "Логин" не найдена: {e}')
 
             time.sleep(self.config.time_sleep_between_requests)
 
-        except BaseException as er:
+        except Exception as er:
             self.logger.error(f'Возникла ошибка в {__name__}: {er}')
 
     @logging_decorator
@@ -199,7 +195,7 @@ class SeleniumUtils(AbstractSelenim):
                 all_messages.append(messages)
                 time.sleep(self.config.time_sleep_between_requests)
 
-        except BaseException as er:
+        except Exception as er:
             self.logger.error(f'Возникла ошибка в {__name__}: {er}')
         finally:
             with open('messages.txt', 'w') as file:

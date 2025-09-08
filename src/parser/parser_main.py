@@ -34,7 +34,7 @@ def main() -> None:
         chats_data: list = parse_chats_url()
         selenium_worker.get_message_from_chats(chats_data)
 
-    except BaseException as er:
+    except Exception as er:
         logger.error(f'Возникла ошибка в {__name__}: {er}')
     finally:
         if selenium_worker is not None:

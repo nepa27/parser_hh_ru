@@ -34,7 +34,7 @@ def parse_chats_url() -> list:
             ))
 
         return chats_data
-    except BaseException as er:
+    except Exception as er:
         print(f'Возникла ошибка в {__name__}: {er}')
         return None
 
