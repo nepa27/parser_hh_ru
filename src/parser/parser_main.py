@@ -1,8 +1,11 @@
+from typing import List, Tuple, Dict, Any
+
 from src.parser.selenium_worker import SeleniumUtils
 from src.parser.parser_utils import parse_chats_url
 from src.parser.config import ParserConfig
 
 from src.logger_config import logger
+
 
 def main() -> None:
     """
@@ -21,9 +24,9 @@ def main() -> None:
     """
     selenium_worker: SeleniumUtils = None
     try:
-        config = ParserConfig()
+        config: ParserConfig = ParserConfig()
 
-        selenium_worker = SeleniumUtils(
+        selenium_worker: SeleniumUtils = SeleniumUtils(
             config,
             logger
         )
@@ -31,7 +34,7 @@ def main() -> None:
         selenium_worker.auth_hh_ru()
         selenium_worker.move_to_chat()
 
-        chats_data: list = parse_chats_url()
+        chats_data: List[Tuple[Dict[str, Any]]] = parse_chats_url()
         selenium_worker.get_message_from_chats(chats_data)
 
     except Exception as er:

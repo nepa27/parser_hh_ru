@@ -1,17 +1,18 @@
 import re
+from typing import List, Dict, Any, Tuple
 
 import bs4
 from bs4 import BeautifulSoup
 
-from src.logger_config import logging_decorator
+from src.logger_config import logging_decorator, logger
 
 
 @logging_decorator
-def parse_chats_url() -> list:
+def parse_chats_url() -> List[Tuple[Dict[str, Any]]] | None:
     """Парсит чаты."""
     with open("chats.html", "r") as f:
         file = f.read()
-    soup = BeautifulSoup(file, 'lxml')
+    soup: BeautifulSoup = BeautifulSoup(file, 'lxml')
     try:
         chats = soup.find_all('a', id=re.compile('chat-cell-'))
         status = soup.find_all('div', class_=re.compile('___last-message-color'))
@@ -26,6 +27,7 @@ def parse_chats_url() -> list:
             chat_company = {'company': company[ind].text}
             chat_status = {'status': check_chat_status(status[ind])}
 
+            # TODO: Вспомнить почему тип tuple
             chats_data.append((
                 chat_id,
                 chat_vacancy,
@@ -35,12 +37,12 @@ def parse_chats_url() -> list:
 
         return chats_data
     except Exception as er:
-        print(f'Возникла ошибка в {__name__}: {er}')
+        logger.error(f'Возникла ошибка в {__name__}: {er}')
         return None
 
 
 @logging_decorator
-def check_chat_status(status: bs4.element.Tag):
+def check_chat_status(status: bs4.element.Tag) -> str | None:
     """Проверяет статус чата."""
     status_class = status['class'][1]
     status_text = status.text
@@ -57,11 +59,11 @@ def check_chat_status(status: bs4.element.Tag):
 
 
 @logging_decorator
-def parse_messages(html: str):
+def parse_messages(html: str) -> List[Dict[str, Any]]:
     """Парсит сообщения."""
-    soup = BeautifulSoup(html, 'lxml')
-    messages = []
-    seen_ids = set()
+    soup: BeautifulSoup = BeautifulSoup(html, 'lxml')
+    messages: list = []
+    seen_ids: set = set()
 
     name_company = soup.find(
         'div', attrs={'data-qa': re.compile('participant')}
@@ -125,7 +127,7 @@ def parse_messages(html: str):
             )
 
         except Exception as e:
-            print(f'Ошибка при парсинге сообщения: {e}')
+            logger.error(f'Ошибка при парсинге сообщения: {e}')
             continue
 
     return messages
