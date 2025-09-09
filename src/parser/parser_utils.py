@@ -8,8 +8,9 @@ from src.logger_config import logging_decorator, logger
 
 
 @logging_decorator
-def parse_chats_url() -> list[tuple[dict[str, Any]]] | None:
+def parse_chats_url() -> list[str | Any] | None:
     """Парсит чаты."""
+    # TODO: Убрать жесткое использование названий файлов
     with open('chats.html', 'r') as f:
         file = f.read()
     soup: BeautifulSoup = BeautifulSoup(file, 'lxml')
@@ -18,30 +19,32 @@ def parse_chats_url() -> list[tuple[dict[str, Any]]] | None:
         status = soup.find_all('div', class_=re.compile('___last-message-color'))
         vacancy = soup.find_all('div', class_=re.compile('___title'))
         company = soup.find_all('div', class_=re.compile('___subtitle'))
-        chats_data = []
+        chat_urls = []
         for ind, chat in enumerate(chats):
-            chat_id = {
-                'id': chat['id'].replace('chat-cell-', '')
-            }
+            # chat_id = {
+            #     'id': chat['id'].replace('chat-cell-', '')
+            # }
+            chat_id = chat['id'].replace('chat-cell-', '')
             chat_vacancy = {'vacancy': vacancy[ind].text}
             chat_company = {'company': company[ind].text}
             chat_status = {'status': check_chat_status(status[ind])}
 
-            # TODO: Вспомнить почему тип tuple
-            chats_data.append((
-                chat_id,
-                chat_vacancy,
-                chat_company,
-                chat_status
-            ))
+            chat_urls.append(chat_id)
+            # TODO: Добавить эти данные в БД в дальнейшем
+            # chats_data.append((
+            #     chat_id,
+            #     chat_vacancy,
+            #     chat_company,
+            #     chat_status
+            # ))
 
-        return chats_data
+        print(chat_urls)
+        return chat_urls
     except Exception as er:
         logger.error(f'Возникла ошибка в {__name__}: {er}')
         return None
 
 
-@logging_decorator
 def check_chat_status(status: bs4.element.Tag) -> str | None:
     """Проверяет статус чата."""
     status_class = status['class'][1]

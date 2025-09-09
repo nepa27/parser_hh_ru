@@ -33,8 +33,8 @@ def main() -> None:
         selenium_worker.auth_hh_ru()
         selenium_worker.move_to_chat()
 
-        chats_data: list[tuple[dict[str, Any]]] = parse_chats_url()
-        selenium_worker.get_message_from_chats(chats_data)
+        chat_urls: list[str | Any] = parse_chats_url()
+        selenium_worker.get_message_from_chats(chat_urls)
 
     except Exception as er:
         logger.error(f'Возникла ошибка в {__name__}: {er}')

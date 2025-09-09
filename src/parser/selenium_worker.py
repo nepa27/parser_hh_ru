@@ -173,7 +173,7 @@ class SeleniumUtils(AbstractSelenim):
             file.write(self.driver.page_source)
 
     @logging_decorator
-    def get_message_from_chats(self, chats_data: list) -> None:
+    def get_message_from_chats(self, chat_urls: list) -> None:
         """
         Получает сообщения из чатов.
 
@@ -181,10 +181,9 @@ class SeleniumUtils(AbstractSelenim):
         Скроллит внутри чата в начало диалога.
         Записывает всю информацию в messages.txt
         """
-        all_messages = []
+        all_messages: list = []
         try:
-            for chat_data in chats_data:
-                chat_url = chat_data[0]['id']
+            for chat_url in chat_urls:
                 self.driver.get(f'https://chatik.hh.ru/chat/{chat_url}')
                 self.logger.info(f'Перешли в чат {chat_url}')
                 time.sleep(self.config.time_sleep_between_requests)
