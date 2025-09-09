@@ -1,5 +1,5 @@
 import re
-from typing import List, Dict, Any, Tuple
+from typing import Any
 
 import bs4
 from bs4 import BeautifulSoup
@@ -8,7 +8,7 @@ from src.logger_config import logging_decorator, logger
 
 
 @logging_decorator
-def parse_chats_url() -> List[Tuple[Dict[str, Any]]] | None:
+def parse_chats_url() -> list[tuple[dict[str, Any]]] | None:
     """Парсит чаты."""
     with open('chats.html', 'r') as f:
         file = f.read()
@@ -59,7 +59,7 @@ def check_chat_status(status: bs4.element.Tag) -> str | None:
 
 
 @logging_decorator
-def parse_messages(html: str) -> List[Dict[str, Any]]:
+def parse_messages(html: str) -> list[dict[str, Any]]:
     """Парсит сообщения."""
     soup: BeautifulSoup = BeautifulSoup(html, 'lxml')
     messages: list = []

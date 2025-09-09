@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class AbstractSelenim(ABC):
+class AbstractSelenium(ABC):
     """Базовый класс для Selenium."""
 
     @abstractmethod

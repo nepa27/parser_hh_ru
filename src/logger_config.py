@@ -2,7 +2,7 @@ from functools import wraps
 import logging
 from logging.handlers import RotatingFileHandler
 import sys
-from typing import Callable
+
 
 log_format = (
     '%(asctime)s - [%(levelname)s] -  %(name)s - '
@@ -26,11 +26,11 @@ logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
 
-def logging_decorator(func: Callable) -> Callable:
+def logging_decorator(func: callable) -> callable:
     """Логирует результат выполнения функции."""
 
     @wraps(func)
-    def wrapper(*args, **kwargs) -> Callable:
+    def wrapper(*args, **kwargs) -> callable:
         result = func(*args, **kwargs)
         logger.info(f'Отработала функция: {func.__name__}')
         return result

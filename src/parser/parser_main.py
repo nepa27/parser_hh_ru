@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict, Any
+from typing import Any
 
 from src.logger_config import logger
 from src.parser.selenium_worker import SeleniumUtils
@@ -33,7 +33,7 @@ def main() -> None:
         selenium_worker.auth_hh_ru()
         selenium_worker.move_to_chat()
 
-        chats_data: List[Tuple[Dict[str, Any]]] = parse_chats_url()
+        chats_data: list[tuple[dict[str, Any]]] = parse_chats_url()
         selenium_worker.get_message_from_chats(chats_data)
 
     except Exception as er:
