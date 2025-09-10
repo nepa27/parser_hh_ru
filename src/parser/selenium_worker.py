@@ -1,6 +1,7 @@
 from logging import Logger
 import time
 import os
+from typing import Any
 
 from dotenv import load_dotenv
 from fake_useragent import UserAgent
@@ -32,7 +33,6 @@ class SeleniumUtils(AbstractSelenium):
         Инициализация системы автоматизации работы.
 
         :param config: конфиг
-        :param driver: драйвер браузера
         :param logger: логгер для сообщений
         """
         self.config = config
@@ -43,8 +43,8 @@ class SeleniumUtils(AbstractSelenium):
         """
         Инициализация драйвера.
 
-        Определяем рандомный user_agent.
-        Добавляем user_agent в аргументы для создания драйвера.
+        Определяем рандомный user_agent и добавляем
+        его в аргументы для создания драйвера.
         Инициализируем драйвер
 
         :return driver: драйвер браузера
@@ -107,8 +107,8 @@ class SeleniumUtils(AbstractSelenium):
 
             time.sleep(self.config.time_sleep_between_requests)
 
-        except Exception as er:
-            self.logger.error(f'Возникла ошибка в {__name__}: {er}')
+        except Exception as e:
+            self.logger.error(f'Ошибка при аутентификации в hh.ru: {e}')
 
     @logging_decorator
     def move_to_chat(self) -> None:
@@ -130,47 +130,50 @@ class SeleniumUtils(AbstractSelenium):
         считая, что максимум попыток у нас self.config.max_attempts
         Сохраняем все чаты в файл chats.html
         """
-        chats_container = WebDriverWait(
-            self.driver,
-            self.config.chats_container_await
-        ).until(
-            EC.presence_of_element_located(
-                (By.XPATH, '//div[contains(@class, "chats--")]')
+        try:
+            chats_container = WebDriverWait(
+                self.driver,
+                self.config.chats_container_await
+            ).until(
+                EC.presence_of_element_located(
+                    (By.XPATH, '//div[contains(@class, "chats--")]')
+                )
             )
-        )
-        prev_chats = self.driver.find_elements(
-            By.XPATH, '//a[contains(@data-qa, "chatik-open-chat-")]'
-        )
-        prev_count = len(prev_chats)
-        attempts = self.config.min_attempts_to_scroll
-        max_attempts = self.config.max_attempts_to_scroll
-
-        while attempts < max_attempts:
-            self.driver.execute_script(
-                'arguments[0].scrollTop = arguments[0].scrollHeight',
-                chats_container
-            )
-            time.sleep(self.config.time_sleep_between_requests)
-
-            current_chats = self.driver.find_elements(
+            prev_chats = self.driver.find_elements(
                 By.XPATH, '//a[contains(@data-qa, "chatik-open-chat-")]'
             )
-            current_count = len(current_chats)
+            prev_count = len(prev_chats)
+            attempts = self.config.min_attempts_to_scroll
+            max_attempts = self.config.max_attempts_to_scroll
 
-            self.logger.debug(f'Попытка {attempts + 1}: было {prev_count},'
-                              f' стало {current_count} чатов')
+            while attempts < max_attempts:
+                self.driver.execute_script(
+                    'arguments[0].scrollTop = arguments[0].scrollHeight',
+                    chats_container
+                )
+                time.sleep(self.config.time_sleep_between_requests)
 
-            if current_count == prev_count:
-                break
+                current_chats = self.driver.find_elements(
+                    By.XPATH, '//a[contains(@data-qa, "chatik-open-chat-")]'
+                )
+                current_count = len(current_chats)
 
-            prev_count = current_count
-            attempts += 1
+                self.logger.debug(f'Попытка {attempts + 1}: было {prev_count},'
+                                  f' стало {current_count} чатов')
 
-        self.logger.debug(f'Всего загружено чатов: {prev_count}')
-        time.sleep(self.config.time_sleep_between_scroll)
+                if current_count == prev_count:
+                    break
 
-        with open('chats.html', 'w') as file:
-            file.write(self.driver.page_source)
+                prev_count = current_count
+                attempts += 1
+
+            self.logger.debug(f'Всего загружено чатов: {prev_count}')
+            time.sleep(self.config.time_sleep_between_scroll)
+
+            with open('chats.html', 'w') as file:
+                file.write(self.driver.page_source)
+        except Exception as e:
+            self.logger.error(f'Ошибка при скроллинге чатов: {e}')
 
     @logging_decorator
     def get_message_from_chats(self, chat_urls: list) -> None:
@@ -200,7 +203,7 @@ class SeleniumUtils(AbstractSelenium):
                 for message in all_messages:
                     file.write(str(message))
                     file.write("\n")
-            self.driver.quit()
+            self.quit()
 
     @logging_decorator
     def scroll_chat_up_and_get_message(self) -> None:
@@ -210,44 +213,55 @@ class SeleniumUtils(AbstractSelenium):
         Ожидает появления 'контейнера' с сообщениями.
         Скроллит чат в начало.
         """
-        chat_container = WebDriverWait(
-            self.driver,
-            self.config.chats_container_await
-        ).until(
-            EC.presence_of_element_located(
-                (By.XPATH, '//div[contains(@class, "___content")]')
+        try:
+            chat_container = WebDriverWait(
+                self.driver,
+                self.config.chats_container_await
+            ).until(
+                EC.presence_of_element_located(
+                    (By.XPATH, '//div[contains(@class, "___content")]')
+                )
             )
-        )
 
-        self.driver.execute_script(
-            'arguments[0].scrollTop = 0', chat_container
-        )
-        time.sleep(self.config.time_sleep_between_requests)
+            self.driver.execute_script(
+                'arguments[0].scrollTop = 0', chat_container
+            )
+            time.sleep(self.config.time_sleep_between_requests)
 
-        current_messages = self.driver.find_elements(
-            By.XPATH, '//div[contains(@data-qa, "chatik-chat-message-")]'
-        )
-        current_count = len(current_messages)
+            current_messages = self.driver.find_elements(
+                By.XPATH, '//div[contains(@data-qa, "chatik-chat-message-")]'
+            )
+            current_count = len(current_messages)
 
-        self.logger.debug(f'+ {current_count} сообщений')
+            self.logger.debug(f'+ {current_count} сообщений')
 
-        # Оставить на случай надобности сохранения чатов
-        # with open('chats.txt', 'a') as file:
-        #     file.write(messages)
+            # Оставить на случай надобности сохранения чатов
+            # with open('chats.txt', 'a') as file:
+            #     file.write(messages)
+        except Exception as e:
+            self.logger.error(f'Ошибка при скроллинге чата вверх: {e}')
 
     @logging_decorator
-    def get_messages(self) -> str:
+    def get_messages(self) -> list[dict[str, Any]]:
         """
         Возвращает сообщения из чата.
 
         Получает страницу и отправляет в parse_messages().
-        Возвращает данные из сообщений в строковом виде.
+        Возвращает данные из сообщений в виде списка.
         """
-        messages_data = parse_messages(self.driver.page_source)
-        return messages_data
+        try:
+            return parse_messages(self.driver.page_source)
+        except Exception as e:
+            self.logger.error(f'Ошибка при получении сообщений: {e}')
 
     @logging_decorator
-    def quit_driver(self) -> None:
-        """Обеспечивает отключение self.driver после работы."""
-        if self.driver:
-            self.driver.quit()
+    def quit(self) -> None:
+        """
+        Завершает работу драйвера.
+        """
+        try:
+            if self.driver:
+                self.driver.quit()
+                self.logger.info('Драйвер успешно закрыт')
+        except Exception as e:
+            self.logger.error(f'Ошибка при завершении работы драйвера: {e}')

@@ -40,7 +40,7 @@ def main() -> None:
         logger.error(f'Возникла ошибка в {__name__}: {er}')
     finally:
         if selenium_worker is not None:
-            selenium_worker.quit_driver()
+            selenium_worker.quit()
 
 
 if __name__ == '__main__':
