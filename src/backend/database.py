@@ -1,23 +1,35 @@
-import asyncio
+from os import getenv
 
+import asyncio
+from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from sqlalchemy.sql import text
 
-SQLALCHEMY_DATABASE_URL = 'postgresql+asyncpg://alex:alex@localhost/parser_db'
+load_dotenv()
+
+DB_HOST = getenv('DB_HOST')
+DB_PORT = getenv('DB_PORT')
+DB_USER = getenv('DB_USER')
+DB_PASS = getenv('DB_PASS')
+DB_NAME = getenv('DB_NAME')
+
+DATABASE_URL = f'postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
 
 engine = create_async_engine(
-    SQLALCHEMY_DATABASE_URL,
+    DATABASE_URL,
     echo=True
 )
 
 async_session = sessionmaker(
     bind=engine,
-    class_= AsyncEngine,
+    class_=AsyncEngine,
     expire_on_commit=False
 )
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
 
 
 async def get_db():
