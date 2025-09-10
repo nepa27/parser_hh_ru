@@ -10,7 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from src.logger_config import logging_decorator
-from src.parser.abstract import AbstractSelenim
+from src.parser.abstract import AbstractSelenium
 from src.parser.config import ParserConfig
 from src.parser.parser_utils import parse_messages
 
@@ -20,7 +20,7 @@ PASSWORD = os.getenv('PASSWORD')
 PHONE_NUMBER = os.getenv('PHONE_NUMBER')
 
 
-class SeleniumUtils(AbstractSelenim):
+class SeleniumUtils(AbstractSelenium):
     """Класс реализующий автоматическую работу браузера."""
 
     def __init__(
