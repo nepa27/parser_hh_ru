@@ -10,7 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from src.logger_config import logging_decorator
+from src.core.config.logging import logging_decorator
 from src.parser.abstract import AbstractSelenium
 from src.parser.config import ParserConfig
 from src.parser.parser_utils import parse_messages

@@ -1,6 +1,6 @@
 from typing import Any
 
-from src.logger_config import logger
+from src.core.config.logging import logger
 from src.parser.selenium_worker import SeleniumUtils
 from src.parser.parser_utils import parse_chats_url
 from src.parser.config import ParserConfig

@@ -4,7 +4,7 @@ from typing import Any
 import bs4
 from bs4 import BeautifulSoup
 
-from src.logger_config import logging_decorator, logger
+from src.core.config.logging import logging_decorator, logger
 
 
 @logging_decorator
