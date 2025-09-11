@@ -43,11 +43,13 @@ async def check_db_connection(engine: AsyncEngine) -> None:
 
 
 async def create_tables(engine: AsyncEngine) -> None:
+    """Функция создания таблиц."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
 
 async def delete_tables(engine: AsyncEngine) -> None:
+    """Функция удаления таблиц."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
