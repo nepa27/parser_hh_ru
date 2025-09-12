@@ -91,9 +91,9 @@ class CRUDBase:
             async with engine.connect() as connection:
                 result = await connection.execute(text('SELECT version();'))
                 db_version = result.scalar_one()
-                print(f'База данных подключена. Версия: {db_version}')
+                logger.info(f'База данных подключена. Версия: {db_version}')
         except Exception as e:
-            print(f'Ошибка при подключении к БД: {e}')
+            logger.info(f'Ошибка при подключении к БД: {e}')
 
     @staticmethod
     async def create_tables(engine: AsyncEngine) -> None:
