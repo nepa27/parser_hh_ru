@@ -77,13 +77,17 @@ class CRUDBase:
             obj_id: int
     ) -> None:
         """Обновляет данные в БД."""
-        query = (
-            update(self.model)
-            .values(**data)
-            .filter_by(id=obj_id)
-        )
-        await session.execute(query)
-        await session.commit()
+        try:
+            query = (
+                update(self.model)
+                .values(**data)
+                .filter_by(id=obj_id)
+            )
+            await session.execute(query)
+            await session.commit()
+        except Exception as e:
+            logger.error(f'Ошибка при обновлении данных в БД: {e}')
+            await session.rollback()
 
     @staticmethod
     async def check_db_connection(engine: AsyncEngine) -> None:
