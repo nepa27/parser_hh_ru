@@ -1,12 +1,13 @@
-from typing import Type
+from typing import Type, Sequence
 
 import asyncio
+from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
 from sqlalchemy.sql import text
 
-from src.core.database import async_engine, async_session
+from src.core.database import async_engine, async_session, get_db
 from src.core.models import Base, User
 
 
@@ -22,14 +23,30 @@ class CRUDBase:
         """
         self.model = model
 
-    async def get_all(self) -> list[tuple]:
-        """Функция получения всех данных."""
-        async with async_engine.connect() as conn:
-            query = select(self.model)
-            result = await conn.execute(query)
-            data = result.all()
-            print(data)
-            return data
+    async def get_all(
+            self,
+            db: AsyncSession
+    ) -> Sequence[Base]:
+        """Получает данные из БД."""
+        query = await db.execute(select(self.model))
+        result = query.scalars().all()
+        return result
+
+    async def get_or_404(
+            self,
+            obj_id: int,
+            db: AsyncSession
+    ) -> Base:
+        """Получает объект из БД по id или выбрасывает 404-ошибку."""
+        query = await db.execute(
+            select(self.model).where(self.model.id == obj_id)
+        )
+        result = query.scalars().first()
+        if not result:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f'Объект {obj_id} в {self.model.__tablename__} не найден')
+        return result
 
 
 async def check_db_connection(engine: AsyncEngine) -> None:
@@ -70,20 +87,22 @@ async def main() -> None:
     await check_db_connection(async_engine)
 
     # await delete_tables(async_engine)
-    await create_tables(async_engine)
+    # await create_tables(async_engine)
 
-    await create_data(
-        User,
-        {
-            'first_name': 'name2',
-            'second_name': 'name2',
-            'password': 'password',
-            'email': 'email2',
-            'is_active': True
-        }
-    )
-    test_ex = CRUDBase(User)
-    await test_ex.get_all()
+    # await create_data(
+    #     User,
+    #     {
+    #         'first_name': 'name2',
+    #         'second_name': 'name2',
+    #         'password': 'password',
+    #         'email': 'email2',
+    #         'is_active': True
+    #     }
+    # )
+    async for session in get_db():
+        test_ex = CRUDBase(User)
+        await test_ex.get_all(session)
+        await test_ex.get_or_404(1, session)
 
 
 asyncio.run(main())
