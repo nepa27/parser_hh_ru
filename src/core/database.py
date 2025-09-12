@@ -1,8 +1,9 @@
 from os import getenv
+from typing import Any, AsyncGenerator
 
 from dotenv import load_dotenv
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio.session import AsyncSession
 
 load_dotenv()
 
@@ -21,7 +22,17 @@ async_engine = create_async_engine(
 
 async_session = async_sessionmaker(
     async_engine,
+    class_=AsyncSession,
     expire_on_commit=False,
     autocommit=False,
     autoflush=False
 )
+
+
+async def get_db() -> AsyncGenerator[AsyncSession, Any]:
+    """Генератор сессий для dependency injection."""
+    async with async_session() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
