@@ -1,14 +1,12 @@
 from typing import Type, Sequence
 
-import asyncio
 from fastapi import HTTPException, status
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
 from sqlalchemy.sql import text
 
 from src.core.config.logging import logger
-from src.core.database import async_engine, get_db
-from src.core.models import Base, User
+from src.core.models import Base
 
 
 class CRUDBase:
@@ -30,9 +28,6 @@ class CRUDBase:
         """Получает данные из БД."""
         query = await session.execute(select(self.model))
         result = query.scalars().all()
-        # TODO: Удалить позже
-        for res in result:
-            print((res.id, res.second_name))
         return result
 
     async def get_or_404(
@@ -123,30 +118,3 @@ class CRUDBase:
         """Функция удаления таблиц."""
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
-
-
-async def main() -> None:
-    # await delete_tables(async_engine)
-    # await create_tables(async_engine)
-
-    # await create_data(
-    #     User,
-    data = {
-        'first_name': 'name3',
-        'second_name': 'name3',
-        'password': 'password',
-        'email': 'email3',
-        'is_active': True
-    }
-    new_data = {
-        'second_name': 'name56',
-    }
-
-    # )
-    async for session in get_db():
-        test_ex = CRUDBase(User)
-        await test_ex.check_db_connection(async_engine)
-        await test_ex.get_all(session)
-
-
-asyncio.run(main())
