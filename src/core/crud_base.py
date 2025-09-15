@@ -37,8 +37,8 @@ class CRUDBase:
 
     async def get_or_404(
             self,
-            obj_id: int,
-            session: AsyncSession
+            session: AsyncSession,
+            obj_id: int
     ) -> Base:
         """Получает объект из БД по id или выбрасывает 404-ошибку."""
         query = await session.execute(
@@ -89,6 +89,19 @@ class CRUDBase:
             logger.error(f'Ошибка при обновлении данных в БД: {e}')
             await session.rollback()
 
+    async def delete(
+            self,
+            session: AsyncSession,
+            db_object: Base
+    ) -> None:
+        """Удаляет данные из БД."""
+        try:
+            await session.delete(db_object)
+            await session.commit()
+        except Exception as e:
+            logger.error(f'Ошибка при удалении данных в БД: {e}')
+            await session.rollback()
+
     @staticmethod
     async def check_db_connection(engine: AsyncEngine) -> None:
         try:
@@ -133,20 +146,6 @@ async def main() -> None:
     async for session in get_db():
         test_ex = CRUDBase(User)
         await test_ex.check_db_connection(async_engine)
-
-        # await test_ex.get_all(session)
-        # await test_ex.get_or_404(1, session)
-        #
-        # await test_ex.create(
-        #     session,
-        #     data
-        # )
-        # await test_ex.get_all(session)
-        # await test_ex.update(
-        #     session,
-        #     new_data,
-        #     1
-        # )
         await test_ex.get_all(session)
 
 
