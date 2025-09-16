@@ -1,4 +1,4 @@
-from typing import Type, Sequence
+from typing import Type
 
 from fastapi import HTTPException, status
 from sqlalchemy import select, update
@@ -8,6 +8,7 @@ from sqlalchemy.sql import text
 from src.core.base.models import Base
 from src.core.config.logging import logger
 from src.core.db.database import async_session
+from src.core.users.schemas import UserGetSchema
 
 
 class CRUDBase:
@@ -22,27 +23,25 @@ class CRUDBase:
         """
         self.model = model
 
-    async def get_all(self) -> Sequence[Base]:
+    async def get_all(self) -> list[UserGetSchema]:
         """Получает данные из БД."""
         async with async_session() as session:
             query = await session.execute(select(self.model))
-            result = query.scalars().all()
-            return result
+            return query.scalars().all()
 
-    async def get_or_404(self, obj_id: int) -> Base:
+    async def get_or_404(self, obj_id: int) -> UserGetSchema:
         """Получает объект из БД по id или выбрасывает 404-ошибку."""
         async with async_session() as session:
             query = await session.execute(
                 select(self.model).where(self.model.id == obj_id)
             )
-            result = query.scalars().first()
-            if not result:
+            if not query:
                 message = f'Объект {obj_id} в {self.model.__tablename__} не найден'
                 logger.error(message)
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=message)
-            return result
+            return query.scalars().first()
 
     async def create(self, data: dict) -> Base:
         """Добавляет данные в БД."""
