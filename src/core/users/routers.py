@@ -19,7 +19,7 @@ async def get_users() -> list[UserGetSchema]:
 @router.get('/{user_id}')
 async def get_one_user(user_id: int) -> UserGetSchema:
     """Возвращает одного пользователя."""
-    return await UserService(User).get_or_404(user_id)
+    return await UserService(User).get_one_or_none(user_id)
 
 
 @router.post('/create')

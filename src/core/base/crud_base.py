@@ -1,6 +1,5 @@
 from typing import Type, TypeVar
 
-from fastapi import HTTPException, status
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.sql import text
@@ -32,19 +31,13 @@ class CRUDBase:
             query = await session.execute(select(self.model))
             return query.scalars().all()
 
-    async def get_or_404(self, obj_id: int) -> ModelType:
+    async def get_one_or_none(self, obj_id: int) -> ModelType | None:
         """Получает объект из БД по id или выбрасывает 404-ошибку."""
         async with async_session() as session:
             query = await session.execute(
                 select(self.model).where(self.model.id == obj_id)
             )
-            if not query:
-                message = f'Объект {obj_id} в {self.model.__tablename__} не найден'
-                logger.error(message)
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=message)
-            return query.scalars().first()
+            return query.scalar_one_or_none()
 
     async def create(self, data: CreateSchemaType) -> ModelType:
         """Добавляет данные в БД."""
