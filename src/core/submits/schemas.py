@@ -12,3 +12,10 @@ class SubmitCreateSchema(BaseModel):
 
 class SubmitGetSchema(SubmitCreateSchema):
     id: int
+
+
+class SubmitAggregateSchema(BaseModel):
+    total_submits: int
+    refusal_count: int
+    invitation_count: int
+    viewed_count: int

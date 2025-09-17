@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from src.core.submits.models import Submit
-from src.core.submits.schemas import SubmitGetSchema, SubmitCreateSchema
+from src.core.submits.schemas import SubmitGetSchema, SubmitCreateSchema, SubmitAggregateSchema
 from src.core.submits.services import SubmitService
 
 router = APIRouter(
@@ -11,8 +11,8 @@ router = APIRouter(
 
 
 @router.get('')
-async def get_submits() -> list[SubmitGetSchema]:
-    """Возвращает все отклики."""
+async def get_number_of_submits() -> SubmitAggregateSchema:
+    """Возвращает количество откликов."""
     return await SubmitService(Submit).get_all()
 
 
