@@ -1,7 +1,15 @@
-from sqlalchemy import Column, ForeignKey, Integer
+from enum import Enum as PyEnum
+
+from sqlalchemy import Column, Enum, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 from src.core.base.models import Base
+
+
+class SubmitType(PyEnum):
+    REFUSAL = 'refusal'
+    INVITATION = 'invitation'
+    VIEWED = 'viewed'
 
 
 class Submit(Base):
@@ -10,10 +18,7 @@ class Submit(Base):
     __tablename__ = 'submits'
 
     id = Column(Integer, primary_key=True, index=True)
-    number_of_submits = Column(Integer, nullable=False)
-    refusal = Column(Integer, nullable=False)
-    invitation = Column(Integer, nullable=False)
-    viewed = Column(Integer, nullable=False)
+    type_submit = Column(Enum(SubmitType))
 
     user_id = Column(Integer, ForeignKey('users.id'))
 
