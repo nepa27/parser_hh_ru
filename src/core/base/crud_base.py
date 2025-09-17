@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, TypeVar
 
 from fastapi import HTTPException, status
 from sqlalchemy import select, update
@@ -8,7 +8,10 @@ from sqlalchemy.sql import text
 from src.core.base.models import Base
 from src.core.config.logging import logger
 from src.core.db.database import async_session
-from src.core.users.schemas import UserGetSchema
+
+ModelType = TypeVar('ModelType')
+CreateSchemaType = TypeVar('CreateSchemaType')
+UpdateSchemaType = TypeVar('UpdateSchemaType')
 
 
 class CRUDBase:
@@ -23,13 +26,13 @@ class CRUDBase:
         """
         self.model = model
 
-    async def get_all(self) -> list[UserGetSchema]:
+    async def get_all(self) -> list[ModelType]:
         """Получает данные из БД."""
         async with async_session() as session:
             query = await session.execute(select(self.model))
             return query.scalars().all()
 
-    async def get_or_404(self, obj_id: int) -> UserGetSchema:
+    async def get_or_404(self, obj_id: int) -> ModelType:
         """Получает объект из БД по id или выбрасывает 404-ошибку."""
         async with async_session() as session:
             query = await session.execute(
@@ -43,7 +46,7 @@ class CRUDBase:
                     detail=message)
             return query.scalars().first()
 
-    async def create(self, data: dict) -> Base:
+    async def create(self, data: CreateSchemaType) -> ModelType:
         """Добавляет данные в БД."""
         db_obj = self.model(**data)
         async with async_session() as session:
