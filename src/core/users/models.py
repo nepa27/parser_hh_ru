@@ -18,3 +18,7 @@ class User(Base):
 
     chat_data = relationship('ChatData', back_populates='users')
     submits = relationship('Submit', back_populates='users')
+
+
+from src.core.chats.models import ChatData
+from src.core.submits.models import Submit
